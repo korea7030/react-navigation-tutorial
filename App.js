@@ -4,6 +4,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 function HomeScreen({ navigation }) {
+  const [count, setCount] = React.useState(0);
+
+  React.useLayoutEffect(() => {
+    // screen component의 state를 사용하기 위해서는
+    // navigation.setOptions를 사용해서 접근 가능
+    navigation.setOptions({
+      headerRight: () => (
+        <Button onPress={() => setCount(c => c + 1)} title="Update Count" />
+      ),
+    });
+  }, [navigation]);
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       <Text>Home Screen</Text>
@@ -14,6 +26,7 @@ function HomeScreen({ navigation }) {
       <Button
         title="Go to Profile"
         onPress={() => navigation.navigate('Profile', { name: 'Custom profile header' })}/>
+      <Text>Count: {count}</Text>
     </View>
   )
 }
@@ -36,6 +49,7 @@ function LogoTitle() {
   );
 }
 
+// headerBackTitle and headerTruncatedBackTitle : 기존에 제공하는 back button을 변경하기 위해서 사용하는 component
 const Stack = createStackNavigator();
 
 function App() {
@@ -64,7 +78,16 @@ function App() {
             // headerTintColor: '#fff',
             // header title custom component
             // (headerTitle: 스택 탐색기에 특정된 속성이며 제목을 표시하는 텍스트 구성 요소로 기본 설정되어 있기 때문에 headerTitle에 설정해야 함)
-            headerTitle: props => <LogoTitle {...props} />
+            headerTitle: props => <LogoTitle {...props} />,
+            // 이렇게 버튼을 지정할 경우,
+            // this 변수가 options의 값을 가리키게 됨. setState또는 instance내의 methods를 호출하지 못함
+            headerRight: () => (
+              <Button
+                onPress={() => alert('This is a button!')}
+                title="Info"
+                color="#00cc00"
+              />
+            ),
           }}
         />
         <Stack.Screen
