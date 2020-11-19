@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { Button, View, Text, Image } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useFocusEffect } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 function SettingsScreen({ route, navigation }) {
   const { user } = route.params;
@@ -18,6 +19,32 @@ function SettingsScreen({ route, navigation }) {
 }
 
 function ProfileScreen({ navigation }) {
+  // useIsFocused : 화면의 focus 상태에 따라 다른 content rendering을 하는 방법으로 제공하는 hook
+
+  // screen이 focus 됐을 때 listen
+  // React.useEffect(
+  //   () => navigation.addListener('focus', () => alert('Screen was focused')),
+  //   []
+  // );
+
+  // screen이 focus가 떠났을 때 listen
+  // React.useEffect(
+  //   () => navigation.addListener('blur', () => alert('Screen was unfocused')),
+  //   []
+  // );
+  // react native event listener => React.useEffect 와 같은 역할
+  useFocusEffect(
+    React.useCallback(() => {
+      alert('Screen was focused');
+      // Do something when the screen is focused
+      return () => {
+        alert('Screen was unfocused');
+        // Do something when the screen is unfocused
+        // Useful for cleanup functions
+      };
+    }, [])
+  );
+
   return (
     <View style={{ flex:1, alignItems: 'center', justifyContent: 'center'}}>
       <Text>Profile Screen</Text>
@@ -43,27 +70,46 @@ function HomeScreen({ navigation }) {
   );
 }
 
-// 왼쪽 드래그 navigator
-const Drawer = createDrawerNavigator();
-const Stack = createStackNavigator();
-
-function Root() {
+function DetailsScreen({ navigation }) {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
-    </Stack.Navigator>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <Text>Details Screen</Text>
+      <Button
+        title="Go to Details... again"
+        onPress={() => navigation.push('Details')}
+      />
+    </View>
   );
 }
+
+const Tab = createBottomTabNavigator();
+const SettingsStack = createStackNavigator();
+const HomeStack = createStackNavigator();
 
 function App() {
   return (
     <NavigationContainer>
-      {/* 왼쪽 drawer navigator  */}
-      <Drawer.Navigator initialRouteName="Root">
-        <Drawer.Screen name="Root" component={Root} />
-        <Drawer.Screen name="Home" component={HomeScreen} />
-      </Drawer.Navigator>
+      <Tab.Navigator>
+        <Tab.Screen name="First">
+          {() => (
+          <SettingsStack.Navigator>
+          <SettingsStack.Screen
+            name="Settings"
+            component={SettingsScreen}
+          />
+          <SettingsStack.Screen name="Profile" component={ProfileScreen} />
+        </SettingsStack.Navigator>
+          )}
+        </Tab.Screen>
+        <Tab.Screen name="Second">
+          {() => (
+            <HomeStack.Navigator>
+              <HomeStack.Screen name="Home" component={HomeScreen} />
+              <HomeStack.Screen name="Details" component={DetailsScreen} />
+            </HomeStack.Navigator>
+          )}
+        </Tab.Screen>
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
