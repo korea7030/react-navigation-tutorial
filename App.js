@@ -1,57 +1,101 @@
 import * as React from 'react';
 import { View, Text, Button } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-function HomeScreen({ navigation }) {
+function DetailsScreen() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: 30 }}>This is the home screen!</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Details!</Text>
+    </View>
+  );
+}
+
+function HomeScreen() {
+  return (
+    <View style={{ flex:1, justifyContent: 'center', alignItems: 'center'}}>
+      <Text>Home!</Text>
       <Button
-        onPress={() => navigation.navigate('MyModal')}
-        title="Open Modal"
+        title="Go to Details"
+        onPress={() => navigation.navigate('Details')}
       />
     </View>
   );
 }
 
-function ModalScreen({ navigation }) {
+function SettingsScreen() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: 30 }}>This is a modal!</Text>
-      <Button onPress={() => navigation.goBack()} title="Dismiss" />
+    <View style={{ flex:1, justifyContent: 'center', alignItems: 'center'}}>
+      <Text>Settings!</Text>
+      <Button
+        title="Go to Details"
+        onPress={() => navigation.navigate('Details')}
+      />
     </View>
   );
 }
 
-function DetailsScreen() {
+const HomeStack = createStackNavigator();
+
+function HomeStackScreen() {
   return (
-    <View>
-      <Text>Details</Text>
-    </View>
+    <HomeStack.Navigator>
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      <HomeStack.Screen name="Details" component={DetailsScreen} />
+    </HomeStack.Navigator>
   );
 }
 
-const MainStack = createStackNavigator();
-const RootStack = createStackNavigator();
+const SettingsStack = createStackNavigator();
 
-function MainStackScreen() {
+function SettingsStackScreen() {
   return (
-    <MainStack.Navigator>
-      <MainStack.Screen name="Home" component={HomeScreen} />
-      <MainStack.Screen name="Details" component={DetailsScreen} />
-    </MainStack.Navigator>
+    <SettingsStack.Navigator>
+      <SettingsStack.Screen name="Settings" component={SettingsScreen} />
+      <SettingsStack.Screen name="Details" component={DetailsScreen} />
+    </SettingsStack.Navigator>
   );
 }
+
+// 화면 아래 tab 버튼
+const Tab = createBottomTabNavigator();
+
+// function MyTabs() {
+//   return (
+//     <Tab.Navigator>
+//       <Tab.Screen name="Home" component={HomeScreen} />
+//       <Tab.Screen name="Settings" component={SettingsScreen} />
+//     </Tab.Navigator>
+//   );
+// }
 
 function App() {
   return (
     <NavigationContainer>
-      {/* modal : ios에서는 작동하지만, Android는 작동안함(전체 화면 모달 전환 동작이 없기 때문) */}
-      <RootStack.Navigator mode="modal" headerMode="none">
-        <RootStack.Screen name="Main" component={MainStackScreen} />
-        <RootStack.Screen name="MyModal" component={ModalScreen} />
-      </RootStack.Navigator>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Home') {
+              iconName = focused? 'ios-information-circle': 'ios-information-circle-outline';
+            } else if (route.name === 'Settings') {
+              iconName = focused? 'ios-list-box': 'ios-list';
+            }
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
+        tabBarOptions={{
+          activeTintColor: 'tomato',
+          inactiveTintColor: 'gray',
+        }}
+      >
+        {/* tabBarBadge : 숫자표시 */}
+        {/* <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarBadge: 3 }} /> */}
+        <Tab.Screen name="Home" component={HomeStackScreen} />
+        <Tab.Screen name="Settings" component={SettingsStackScreen} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
