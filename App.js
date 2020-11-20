@@ -1,101 +1,99 @@
 import * as React from 'react';
-import { View, Text, Button } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Button } from 'react-native';
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItemList,
+  DrawerItem,
+  useIsDrawerOpen,
+} from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-function DetailsScreen() {
+// drawer의 open 여부를 확인
+const isDrawerOpen = useIsDrawerOpen();
+
+function Feed({ navigation }) {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Details!</Text>
+    <View style={{ flex:1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Feed Screen</Text>
+      {/* <Button title="Open drawer" onPress={() => navigation.openDrawer()} />
+      <Button title="Toggle drawer" onPress={() => navigation.toggleDrawer()} /> */}
+      <Button title="Open drawer" onPress={() => navigation.dispatch(DrawerActions.openDrawer())} />
+      <Button title="Toggle drawer" onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())} />
     </View>
   );
 }
 
-function HomeScreen() {
+function Notifications() {
   return (
     <View style={{ flex:1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Home!</Text>
+      <Text>Notifications Screen</Text>
+    </View>
+  );
+}
+
+function CustomDrawerContent(props) {
+  return (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+      {/* <DrawerItem
+        label="Close drawer"
+        onPress={() => props.navigation.closeDrawer()}
+      />
+      <DrawerItem
+        label="Toggle drawer"
+        onPress={() => props.navigation.toggleDrawer()}
+      /> */}
+      <DrawerItem
+        label="Close drawer"
+        onPress={() => props.navigation.dispatch(DrawerActions.closeDrawer())}
+      />
+      <DrawerItem
+        label="Toggle drawer"
+        onPress={() => props.navigation.dispatch(DrawerActions.toggleDrawer())}
+      />
+    </DrawerContentScrollView>
+  );
+}
+
+function MyDrawer() {
+  return (
+    <Drawer.Navigator drawerContent={props => <CustomDrawerContent {...props} />}>
+      <Drawer.Screen name="Feed" component={Feed} />
+      <Drawer.Screen name="Notifications" component={Notifications} />
+    </Drawer.Navigator>
+  );
+}
+
+function HomeScreen({ navigation }) {
+  return (
+    <View style={{ flex:1, alignItems: 'center', justifyContent: 'center'}}>
       <Button
-        title="Go to Details"
-        onPress={() => navigation.navigate('Details')}
+        onPress={() => navigation.navigate('Notifications')}
+        title="Go to notifications"
       />
     </View>
   );
 }
 
-function SettingsScreen() {
+function NotificationsScreen({ navigation }) {
   return (
-    <View style={{ flex:1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text>Settings!</Text>
-      <Button
-        title="Go to Details"
-        onPress={() => navigation.navigate('Details')}
-      />
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <Button onPress={() => navigation.goBack()} title="Go back home" />
     </View>
   );
 }
 
-const HomeStack = createStackNavigator();
-
-function HomeStackScreen() {
-  return (
-    <HomeStack.Navigator>
-      <HomeStack.Screen name="Home" component={HomeScreen} />
-      <HomeStack.Screen name="Details" component={DetailsScreen} />
-    </HomeStack.Navigator>
-  );
-}
-
-const SettingsStack = createStackNavigator();
-
-function SettingsStackScreen() {
-  return (
-    <SettingsStack.Navigator>
-      <SettingsStack.Screen name="Settings" component={SettingsScreen} />
-      <SettingsStack.Screen name="Details" component={DetailsScreen} />
-    </SettingsStack.Navigator>
-  );
-}
-
-// 화면 아래 tab 버튼
-const Tab = createBottomTabNavigator();
-
-// function MyTabs() {
-//   return (
-//     <Tab.Navigator>
-//       <Tab.Screen name="Home" component={HomeScreen} />
-//       <Tab.Screen name="Settings" component={SettingsScreen} />
-//     </Tab.Navigator>
-//   );
-// }
+const Drawer = createDrawerNavigator();
 
 function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-
-            if (route.name === 'Home') {
-              iconName = focused? 'ios-information-circle': 'ios-information-circle-outline';
-            } else if (route.name === 'Settings') {
-              iconName = focused? 'ios-list-box': 'ios-list';
-            }
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-        })}
-        tabBarOptions={{
-          activeTintColor: 'tomato',
-          inactiveTintColor: 'gray',
-        }}
-      >
-        {/* tabBarBadge : 숫자표시 */}
-        {/* <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarBadge: 3 }} /> */}
-        <Tab.Screen name="Home" component={HomeStackScreen} />
-        <Tab.Screen name="Settings" component={SettingsStackScreen} />
-      </Tab.Navigator>
+      {/* <Drawer.Navigator initialRouteName="Home">
+        <Drawer.Screen name="Home" component={HomeScreen} />
+        <Drawer.Screen name="Notifications" component={NotificationsScreen} />
+      </Drawer.Navigator> */}
+      <MyDrawer />
     </NavigationContainer>
   );
 }
