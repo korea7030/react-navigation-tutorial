@@ -1,116 +1,109 @@
 import * as React from 'react';
-import { View } from 'react-native';
+import { Alert, View, TextInput, StyleSheet } from 'react-native';
+import { Button } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
-const Tab = createBottomTabNavigator();
-const HomeStack = createStackNavigator();
-const SettingsStack = createStackNavigator();
+/*
+prevent back 버튼이 활성화 되는 경우
+1. stack에서의 screen의 백버튼을 누른 경우
+2. swipe back gesture를 한 경우
+3. state로 부터 screen의 pop 또는 reset action이 수행되는 경우
 
-// 탭의 header title을 일괄적으로 변경
-function getHeaderTitle(route) {
-  // If the focused route is not found, we need to assume it's the initial screen
-  // This can happen during if there hasn't been any navigation inside the screen
-  // In our case, it's "Feed" as that's the first screen inside the navigator
-  const routeName = getFocusedRouteNameFromRoute(route) ?? 'Feed';
+prevent back 버튼이 활성화 안되는 경우
+1. stack에서 새로운 screen을 연 경우
+2. 다른 screen 화면으로 이동한 경우
+*/
+const EditTextScreen = ({ navigation }) => {
+  const [text, setText] = React.useState('');
 
-  switch (routeName) {
-    case 'Feed':
-      return 'News feed';
-    case 'Profile':
-      return 'My profile';
-    case 'Account':
-      return 'My account';
-  }
-}
+  const hasUnsavedChanges = Boolean(text);
 
-// A와 B는 탭 탐색기가 아니라
-// 각 Screen Stack 상의 화면 구성요소이기 때문에 options이 적용 안됨
-function A() {
-  return <View />;
-}
+  React.useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (e) => {
+        const action = e.data.action;
+        if (!hasUnsavedChanges) {
+          return;
+        }
 
-function B() {
-  return <View />;
-}
+        e.preventDefault();
 
-function HomeStackScreen() {
-  return (
-    <HomeStack.Navigator>
-      <HomeStack.Screen name="A" component={A} />
-      {/* 아래와 같이 tabBarlabel을 지정하면 적용이 안됨 */}
-      {/* <HomeStack.Screen name="A" component={A} options={{ tabBarLabel: 'Home!' }}/> */}
-    </HomeStack.Navigator>
+        Alert.alert(
+          'Discard changes?',
+          'You have unsaved changes. Are you sure to discard them and leave the screen?',
+          [
+            { text: "Don't leave", style: 'cancel', onPress: () => {} },
+            {
+              text: 'Discard',
+              style: 'destructive',
+              onPress: () => navigation.dispatch(action),
+            },
+          ]
+        );
+      }),
+    [hasUnsavedChanges, navigation]
   );
-}
 
-function SettingsStackScreen() {
   return (
-    <SettingsStack.Navigator>
-      <SettingsStack.Screen name="B" component={B} />
-    </SettingsStack.Navigator>
-  );
-}
-
-function FeedScreen({ navigation }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Button
-        title="Go to Settings"
-        onPress={() => navigation.navigate('Settings')}
+    <View style={styles.content}>
+      <TextInput
+        autoFocus
+        style={styles.input}
+        value={text}
+        placeholder="Type something…"
+        onChangeText={setText}
       />
     </View>
   );
-}
+};
 
-function ProfileScreen() {
-  return <View />;
-}
-
-function AccountScreen() {
-  return <View />;
-}
-
-function SettingsScreen() {
-  return <View />;
-}
-
-const Tab = createBottomTabNavigator();
-
-function HomeTabs() {
+const HomeScreen = ({ navigation }) => {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Feed" component={FeedScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-      <Tab.Screen name="Account" component={AccountScreen} />
-    </Tab.Navigator>
+    <View style={styles.buttons}>
+      <Button
+        mode="contained"
+        onPress={() => navigation.push('EditText')}
+        style={styles.button}
+      >
+        Push EditText
+      </Button>
+    </View>
   );
-}
+};
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      {/* tabbar의 label 변경하려면 Tab.Screen 에서 options으로 지정해야 함 */}
-      {/* <Tab.Navigator>
-        <Tab.Screen
-          name="Home"
-          component={HomeStackScreen}
-          options={{ tabBarLabel: 'Home!' }}
-        />
-        <Tab.Screen
-          name="Settings"
-          component={SettingsStackScreen}
-          options={{ tabBarLabel: 'Settings!' }}
-        />
-      </Tab.Navigator> */}
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeTabs} options={({ route }) => ({
-    headerTitle: getHeaderTitle(route),
-  })}/>
-        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="EditText" component={EditTextScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  input: {
+    margin: 8,
+    padding: 10,
+    borderRadius: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: 'white',
+  },
+  buttons: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 8,
+  },
+  button: {
+    margin: 8,
+  },
+});
