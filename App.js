@@ -1,142 +1,52 @@
 import * as React from 'react';
-import { AsyncStorage, Button, Text, TextInput, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import {  SafeAreaProvider, useSafeAreaInsets  } from 'react-native-safe-area-context';  // 화면 짤리는 부분 방지
 
-const AuthContext = React.createContext();
-
-function SplashScreen() {
-  return (
-    <View>
-      <Text>Loading...</Text>
-    </View>
-  );
-}
-
-function HomeScreen() {
-  const { signOut } = React.useContext(AuthContext);
+function Demo() {
+  const insets = useSafeAreaInsets();
 
   return (
-    <View>
-      <Text>Signed in!</Text>
-      <Button title="Sign Out" onPress={signOut} />
-    </View>
-  );
-}
-
-function SignInScreen() {
-  const [username, setUsername] = React.useState('');
-  const [password, setPassword] = React.useState('');
-
-  const { signIn } = React.useContext(AuthContext);
-
-  return (
-    <View>
-      <TextInput
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <Button title="Sign in" onPress={() => signIn({ username, password })} />
+    // 위에 짤리는 부분 개선
+    <View
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        flex: 1,
+        justifyContent: 'space-between',
+        alignItems: 'center'}}
+    >
+      <Text>This is top Text</Text>
+      <Text>This is bottom Text</Text>
     </View>
   );
 }
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
-function App({ naviation }) {
-  // Redux Reducer
-  const [state, dispatch] = React.useReducer(
-    (prevState, action) => {
-      switch (action.type) {
-        case 'RESTORE_TOKEN':
-          return {
-            ...prevState,
-            userToken: action.token,
-            isLoading: false,
-          };
-        case 'SIGN_IN':
-          return {
-            ...prevState,
-            isSignout: false,
-            userToken: action.token,
-          };
-        case 'SIGN_OUT':
-          return {
-            ...prevState,
-            isSignout: true,
-            userToken: null,
-          };
-      }
-    },
-    {
-      isLoading: true,
-      isSignout: false,
-      userToken: null
-    }
-  );
-
-  React.useEffect(() => {
-    // fetch token
-    const bootstrapAsync = async () => {
-      let userToken;
-
-      try {
-        userToken = await AsyncStorage.getItem('userToken');
-      } catch (e) {
-        // token failed
-      }
-
-      // After restoring token, we may need to validate it in production apps
-
-      // This will switch to the App screen or Auth screen and this loading
-      // screen will be unmounted and thrown away.
-      dispatch({ type: 'RESTORE_TOKEN', token: userToken });
-    };
-    bootstrapAsync();
-  }, []);
-
-  const authContext = React.useMemo(
-    () => ({
-      signIn: async data => {
-        dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
-      },
-      signOut: () => dispatch({ type: 'SIGN_OUT' }),
-      signUp: async data => {
-        dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
-      },
-    }),
-    []
-  );
-
+export default function App() {
   return (
-    <AuthContext.Provider value={authContext}>
+    // 위에 짤리는 부분 개선
+    <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator>
-          {/* loading 중 */}
-          {state.isLoading? (
-            <Stack.Screen name="Splash" component={SplashScreen} />
-          ) : state.userToken == null ? (
-            // token이 없는 경우
-            <Stack.Screen
-              name="SignIn"
-              component={SignInScreen}
-              options={{
-                title: 'Sign in',
-                animationTypeForReplace: state.isSignout ? 'pop': 'push',
-              }}
-            />) : (
-              // token이 있는 경우
-              <Stack.Screen name="Home" component={Homescreen} />
-            ) }
+        <Stack.Navigator initialRouteName="Home" headerMode="nome">
+          <Stack.Screen name="Home">
+            {() => {
+              <Tab.Navigator
+                initialRouteName="Analitics"
+                tabBar={() => null}
+              >
+                <Tab.Screen name="Analitics" component={Demo} />
+                <Tab.Screen name="Profile" component={Demo} />
+              </Tab.Navigator>
+            }}
+          </Stack.Screen>
+          <Stack.Screen name="Settings" component={Demo} />
         </Stack.Navigator>
       </NavigationContainer>
-    </AuthContext.Provider>
-  )
+    </SafeAreaProvider>
+  );
 }
