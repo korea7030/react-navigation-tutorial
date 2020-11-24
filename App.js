@@ -1,65 +1,52 @@
 import * as React from 'react';
 import { View } from 'react-native';
-import {  NavigationContainer,
-          useFocusEffect,
-          useIsFocused
+import {  useNavigation, NavigationContainer
         } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
 /*
-screen이 포커스 됐을때의 event
-1. 'focus' event listener add
-2. useFocusEffect hook
-3. useIsFocused hook
+useNavigation : navigation object의 access를 가능하게 함
 */
-
-function ProfileScreen({ navigation }) {
-  // focus 됐으면 true, 아니면 false
-  const isFocused = useIsFocused();
-
-  useFocusEffect(
-    React.useCallback(() => {
-      // when focused
-      alert('Screen was focused');
-
-      // when unfocused
-      return () => {
-        alert('Screen was unfocused');
-      };
-    }, [])
-  );
-
-  // React.useEffect(() => {
-  //   // focus event listener
-  //   const unsubscribe = navigation.addListener('focus', () => {
-  //     alert('Screen is focused');
-  //   });
-
-  //   return unsubscribe;
-  // }, []);
+function GoToButton({ screenName }) {
+  // navigation object
+  const navigation = useNavigation();
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>{isFocused ? 'focused' : 'unfocused'}</Text>
+    <Button
+      title={`Go to ${screenName}`}
+      onPress={() => navigation.navigate(screenName)}
+    />
+  );
+}
+
+function HomeScreen({ navigation }) {
+  return (
+    <View style={{ flex:1, alignItems: 'center', justifyContent: 'center'}}>
+      <Text>Home Screen</Text>
+      <GoToButton screenName="Details" />
     </View>
   );
 }
 
-function HomeScreen() {
-  return <View />;
+function DetailsScreen({ navigation }) {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <Text>Details Screen</Text>
+      <GoToButton screenName="Home" />
+    </View>
+  );
 }
 
-// const Tab = createBottomTabNavigator();
-const Tab = createMaterialTopTabNavigator();
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
-      </Tab.Navigator>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Details" component={DetailsScreen} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
