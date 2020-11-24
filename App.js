@@ -1,109 +1,65 @@
 import * as React from 'react';
-import { Alert, View, TextInput, StyleSheet } from 'react-native';
-import { Button } from 'react-native-paper';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { View } from 'react-native';
+import {  NavigationContainer,
+          useFocusEffect,
+          useIsFocused
+        } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
 /*
-prevent back 버튼이 활성화 되는 경우
-1. stack에서의 screen의 백버튼을 누른 경우
-2. swipe back gesture를 한 경우
-3. state로 부터 screen의 pop 또는 reset action이 수행되는 경우
-
-prevent back 버튼이 활성화 안되는 경우
-1. stack에서 새로운 screen을 연 경우
-2. 다른 screen 화면으로 이동한 경우
+screen이 포커스 됐을때의 event
+1. 'focus' event listener add
+2. useFocusEffect hook
+3. useIsFocused hook
 */
-const EditTextScreen = ({ navigation }) => {
-  const [text, setText] = React.useState('');
 
-  const hasUnsavedChanges = Boolean(text);
+function ProfileScreen({ navigation }) {
+  // focus 됐으면 true, 아니면 false
+  const isFocused = useIsFocused();
 
-  React.useEffect(
-    () =>
-      navigation.addListener('beforeRemove', (e) => {
-        const action = e.data.action;
-        if (!hasUnsavedChanges) {
-          return;
-        }
+  useFocusEffect(
+    React.useCallback(() => {
+      // when focused
+      alert('Screen was focused');
 
-        e.preventDefault();
-
-        Alert.alert(
-          'Discard changes?',
-          'You have unsaved changes. Are you sure to discard them and leave the screen?',
-          [
-            { text: "Don't leave", style: 'cancel', onPress: () => {} },
-            {
-              text: 'Discard',
-              style: 'destructive',
-              onPress: () => navigation.dispatch(action),
-            },
-          ]
-        );
-      }),
-    [hasUnsavedChanges, navigation]
+      // when unfocused
+      return () => {
+        alert('Screen was unfocused');
+      };
+    }, [])
   );
+
+  // React.useEffect(() => {
+  //   // focus event listener
+  //   const unsubscribe = navigation.addListener('focus', () => {
+  //     alert('Screen is focused');
+  //   });
+
+  //   return unsubscribe;
+  // }, []);
 
   return (
-    <View style={styles.content}>
-      <TextInput
-        autoFocus
-        style={styles.input}
-        value={text}
-        placeholder="Type something…"
-        onChangeText={setText}
-      />
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+      <Text>{isFocused ? 'focused' : 'unfocused'}</Text>
     </View>
   );
-};
+}
 
-const HomeScreen = ({ navigation }) => {
-  return (
-    <View style={styles.buttons}>
-      <Button
-        mode="contained"
-        onPress={() => navigation.push('EditText')}
-        style={styles.button}
-      >
-        Push EditText
-      </Button>
-    </View>
-  );
-};
+function HomeScreen() {
+  return <View />;
+}
 
-const Stack = createStackNavigator();
+// const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="EditText" component={EditTextScreen} />
-      </Stack.Navigator>
+      <Tab.Navigator>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  input: {
-    margin: 8,
-    padding: 10,
-    borderRadius: 3,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0, 0, 0, 0.08)',
-    backgroundColor: 'white',
-  },
-  buttons: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 8,
-  },
-  button: {
-    margin: 8,
-  },
-});
